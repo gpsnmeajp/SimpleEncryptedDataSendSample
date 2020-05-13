@@ -5,3 +5,5 @@ LAN内やVPN上で使用する前提です。
 
 UnityCipher (暗号化ライブラリ)に依存しています。  
 https://github.com/TakuKobayashi/UnityCipher
+
+<img src="https://github.com/gpsnmeajp/SimpleEncryptedDataSendSample/blob/master/doc/SEDSS.png?raw=true"></img>
