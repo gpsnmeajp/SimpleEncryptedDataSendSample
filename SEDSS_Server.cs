@@ -35,26 +35,33 @@ using UnityCipher;
 
 public class SEDSS_Server : MonoBehaviour
 {
-    HttpListener listener;
-    Thread thread = null;
-    public string adr = "http://127.0.0.1:8000/";
-    public string password = "1234";
-    public byte[] data;
+    public int port = 8000;
+
+    string password = "";
+    byte[] data;
+
+    public Action<byte[]> OnReceived = null;
 
     readonly UTF8Encoding utf8 = new UTF8Encoding(false);
-
+    HttpListener listener;
+    Thread thread = null;
     SynchronizationContext MainThreadContext;
-    Action<byte[]> OnReceived = null;
 
-    // Start is called before the first frame update
+    public void SetData(byte[] data)
+    {
+        this.data = data;
+    }
+    public void SetPassword(string password)
+    {
+        this.password = password;
+    }
+
     void Start()
     {
         MainThreadContext = SynchronizationContext.Current;
 
-        data = utf8.GetBytes("Welcome");
-
         listener = new HttpListener();
-        listener.Prefixes.Add(adr);
+        listener.Prefixes.Add("http://*:"+port+"/");
         listener.Start();
 
         //受信処理スレッド
@@ -62,16 +69,20 @@ public class SEDSS_Server : MonoBehaviour
         thread.Start();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     private void OnDestroy()
     {
-        listener.Close();
-        thread.Join();
+        try
+        {
+            listener.Close();
+        }
+        catch (Exception e)
+        {
+            //Do noting
+        }
+        finally
+        {
+            thread.Join();
+        }
     }
 
     private void ReceiveThread()
@@ -82,15 +93,13 @@ public class SEDSS_Server : MonoBehaviour
             {
                 HttpListenerContext context = listener.GetContext();
                 HttpListenerRequest request = context.Request;
-
-                //Console.WriteLine(request.Url.LocalPath);
                 HttpListenerResponse response = context.Response;
 
                 response.StatusCode = 400;
-                string res = ("400 Bad Request");
+                byte[] res = utf8.GetBytes("400 Bad Request");
                 try
                 {
-                    if (request.HttpMethod == "POST" && request.HasEntityBody)
+                    if (request.HttpMethod == "PUT" && request.HasEntityBody)
                     {
                         switch (request.Url.LocalPath)
                         {
@@ -99,15 +108,13 @@ public class SEDSS_Server : MonoBehaviour
                                     var len = request.ContentLength64;
                                     byte[] rcvBuf = new byte[len];
                                     request.InputStream.Read(rcvBuf, 0, (int)len);
-                                    string str = utf8.GetString(rcvBuf);
-                                    str = System.Web.HttpUtility.UrlDecode(str);
 
-                                    res = RijndaelEncryption.Decrypt(str, password);
-                                    Debug.Log(res);
-                                    if (res == "request")
+                                    byte[] decryptedReceiveData = RijndaelEncryption.Decrypt(rcvBuf, password);
+
+                                    if (utf8.GetString(decryptedReceiveData) == "request")
                                     {
                                         response.StatusCode = 200;
-                                        res = Convert.ToBase64String(RijndaelEncryption.Encrypt(data, password));
+                                        res = RijndaelEncryption.Encrypt(data, password);
                                     }
                                 }
                                 break;
@@ -116,20 +123,18 @@ public class SEDSS_Server : MonoBehaviour
                                     var len = request.ContentLength64;
                                     byte[] rcvBuf = new byte[len];
                                     request.InputStream.Read(rcvBuf, 0, (int)len);
-                                    string str = utf8.GetString(rcvBuf);
-                                    str = System.Web.HttpUtility.UrlDecode(str);
 
-                                    Debug.Log(str);
+                                    byte[] decryptedReceiveData = RijndaelEncryption.Decrypt(rcvBuf, password);
 
-                                    res = RijndaelEncryption.Decrypt(str, password);
-                                    Debug.Log(res);
+                                    OnReceived?.Invoke(decryptedReceiveData);
 
                                     response.StatusCode = 200;
-                                    res = RijndaelEncryption.Encrypt("Upload OK", password);
+                                    string responseString = ("Upload OK");
+                                    res = RijndaelEncryption.Encrypt(utf8.GetBytes(responseString), password);
                                 }
                                 break;
                             default:
-                                res = ("404 Not found");
+                                res = utf8.GetBytes("404 Not found");
                                 response.StatusCode = 404;
                                 break;
                         }
@@ -137,12 +142,12 @@ public class SEDSS_Server : MonoBehaviour
                 }
                 catch (Exception e)
                 {
-                    response.StatusCode = 500;
-                    res = ("Internal Server Error");
+                    response.StatusCode = 400;
+                    res = utf8.GetBytes("400 Bad Request");
                     Debug.Log(e);
                 }
 
-                byte[] buf = utf8.GetBytes(res);
+                Byte[] buf = res;
                 response.OutputStream.Write(buf, 0, buf.Length);
                 response.OutputStream.Close();
 
