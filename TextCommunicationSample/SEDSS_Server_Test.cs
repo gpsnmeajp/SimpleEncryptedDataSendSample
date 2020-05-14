@@ -27,6 +27,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(SEDSS_Server))]
 public class SEDSS_Server_Test : MonoBehaviour
 {
     SEDSS_Server server;

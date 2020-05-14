@@ -27,6 +27,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(SEDSS_Client))]
 public class SEDSS_Client_EVMC4U : MonoBehaviour
 {
     EVMC4U.ExternalReceiver externalReceiver;
