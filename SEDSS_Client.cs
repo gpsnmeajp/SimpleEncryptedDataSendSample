@@ -48,30 +48,39 @@ public class SEDSS_Client : MonoBehaviour
 
     //データを暗号化してアップロードする。
     //成功すればOnOnSuccess、エラー発生時にはOnErrorを叩く。
-    public void Upload(byte[] data, Action OnSuccess, Action<string> OnError)
+    public void Upload(byte[] data,string id, Action<string> OnSuccess, Action<string,string> OnError)
     {
-        StartCoroutine(UploadCoroutine(data, OnSuccess, OnError));
+        StartCoroutine(UploadCoroutine(data, id, OnSuccess, OnError));
     }
 
     //暗号化されたデータをダウンロードするする。
     //成功すればOnOnSuccess、エラー発生時にはOnErrorを叩く。
-    public void Download(Action<byte[]> OnSuccess, Action<string> OnError)
+    public void Download(string id,Action<byte[],string> OnSuccess, Action<string, string> OnError)
     {
-        StartCoroutine(RequestCoroutine(OnSuccess, OnError));
+        StartCoroutine(RequestCoroutine(id,OnSuccess, OnError));
     }
 
-    IEnumerator UploadCoroutine(byte[] data, Action OnSuccess, Action<string> OnError)
+    IEnumerator UploadCoroutine(byte[] data, string id, Action<string> OnSuccess, Action<string,string> OnError)
     {
+        if (id == null || id == "") {
+            id = "-";
+        }
+        if (data == null || data.Length == 0) {
+            OnError?.Invoke("No data", id);
+            yield break;
+        }
+
         UnityWebRequest req;
         try
         {
             string URL = "http://" + Address + ":" + Port + "";
             byte[] encryptedData = RijndaelEncryption.Encrypt(data, password);
-            req = UnityWebRequest.Put(URL + "/upload", encryptedData);
+            string encryptedId = RijndaelEncryption.Encrypt(id, password);
+            req = UnityWebRequest.Put(URL + "/upload?"+encryptedId, encryptedData);
         }
         catch (Exception e)
         {
-            OnError?.Invoke(e.ToString());
+            OnError?.Invoke(e.ToString(),id);
             yield break;
         }
 
@@ -81,50 +90,63 @@ public class SEDSS_Client : MonoBehaviour
         {
             if (req.isNetworkError || req.isHttpError)
             {
-                OnError?.Invoke(req.error);
+                OnError?.Invoke(req.error, id);
                 yield break;
             }
             if (req.responseCode != 200)
             {
-                OnError?.Invoke("CODE:" + req.responseCode);
+                OnError?.Invoke("CODE:" + req.responseCode, id);
                 yield break;
             }
             if (req.responseCode != 200)
             {
-                OnError?.Invoke("CODE:" + req.responseCode);
+                OnError?.Invoke("CODE:" + req.responseCode, id);
                 yield break;
             }
 
-            byte[] response = RijndaelEncryption.Decrypt(req.downloadHandler.data, password);
+            byte[] response;
+            try
+            {
+                response = RijndaelEncryption.Decrypt(req.downloadHandler.data, password);
+            }
+            catch (Exception) {
+                throw new ArgumentException("Decryption Error");
+            }
             if (utf8.GetString(response) != "Upload OK") {
-                OnError?.Invoke("DecrtptFail");
+                OnError?.Invoke("DecrtptFail", id);
                 yield break;
             }
 
-            OnSuccess?.Invoke();
+            OnSuccess?.Invoke(id);
             yield break;
         }
         catch (Exception e) {
-            OnError?.Invoke(e.ToString());
+            OnError?.Invoke(e.ToString(), id);
             yield break;
         }
     }
 
-    IEnumerator RequestCoroutine(Action<byte[]> OnSuccess, Action<string> OnError)
+    IEnumerator RequestCoroutine(string id, Action<byte[],string> OnSuccess, Action<string, string> OnError)
     {
+        if (id == null || id == "")
+        {
+            id = "-";
+        }
+
         UnityWebRequest req;
         try
         {
             string URL = "http://" + Address + ":" + Port + "";
 
-            string keyword = "request";
-            byte[] keywordBytes = utf8.GetBytes(keyword);
+            string requestData = "request";
+            byte[] keywordBytes = utf8.GetBytes(requestData);
             byte[] encryptedData = RijndaelEncryption.Encrypt(keywordBytes, password);
-            req = UnityWebRequest.Put(URL + "/request", encryptedData);
+            string encryptedId = RijndaelEncryption.Encrypt(id, password);
+            req = UnityWebRequest.Put(URL + "/request?"+ encryptedId, encryptedData);
         }
         catch (Exception e)
         {
-            OnError?.Invoke(e.ToString());
+            OnError?.Invoke(e.ToString(),id);
             yield break;
         }
 
@@ -134,21 +156,29 @@ public class SEDSS_Client : MonoBehaviour
         {
             if (req.isNetworkError || req.isHttpError)
             {
-                OnError?.Invoke(req.error);
+                OnError?.Invoke(req.error,id);
                 yield break;
             }
             if (req.responseCode != 200)
             {
-                OnError?.Invoke("CODE:" + req.responseCode);
+                OnError?.Invoke("CODE:" + req.responseCode,id);
                 yield break;
             }
-            byte[] data = RijndaelEncryption.Decrypt(req.downloadHandler.data, password);
-            OnSuccess?.Invoke(data);
+            byte[] data;
+            try
+            {
+                data = RijndaelEncryption.Decrypt(req.downloadHandler.data, password);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("Decryption Error");
+            }
+            OnSuccess?.Invoke(data, id);
             yield break;
         }
         catch (Exception e)
         {
-            OnError?.Invoke(e.ToString());
+            OnError?.Invoke(e.ToString(), id);
             yield break;
         }
     }

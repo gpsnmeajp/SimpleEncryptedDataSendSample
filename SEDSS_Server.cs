@@ -35,22 +35,19 @@ using UnityCipher;
 
 public class SEDSS_Server : MonoBehaviour
 {
+    public string domain = "*";
     public int port = 8000;
 
     string password = "";
-    byte[] data;
 
-    public Action<byte[]> OnReceived = null;
+    public Action<byte[], string> OnDataUploaded = null;
+    public Func<string, byte[]> OnDownloadRequest = null;
 
     readonly UTF8Encoding utf8 = new UTF8Encoding(false);
     HttpListener listener;
     Thread thread = null;
     SynchronizationContext MainThreadContext;
 
-    public void SetData(byte[] data)
-    {
-        this.data = data;
-    }
     public void SetPassword(string password)
     {
         this.password = password;
@@ -61,7 +58,7 @@ public class SEDSS_Server : MonoBehaviour
         MainThreadContext = SynchronizationContext.Current;
 
         listener = new HttpListener();
-        listener.Prefixes.Add("http://*:"+port+"/");
+        listener.Prefixes.Add("http://" + domain + ":" + port + "/");
         listener.Start();
 
         //受信処理スレッド
@@ -101,32 +98,56 @@ public class SEDSS_Server : MonoBehaviour
                 {
                     if (request.HttpMethod == "PUT" && request.HasEntityBody)
                     {
+                        string id = RijndaelEncryption.Decrypt(request.Url.Query.Remove(0, 1), password);
+
+                        //Debug.Log(id);
+
+                        var len = request.ContentLength64;
+                        //Debug.Log(len);
+                        byte[] rcvBuf;
+
+                        byte[] membuf = new byte[256];
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            while (true)
+                            {
+                                int readlen = request.InputStream.Read(membuf, 0, membuf.Length);
+                                if (readlen <= 0)
+                                {
+                                    break;
+                                }
+                                memoryStream.Write(membuf, 0, readlen);
+                            }
+                            rcvBuf = memoryStream.ToArray();
+                        }
+                        //Debug.Log(rcvBuf.Length);
+
+                        byte[] decryptedReceiveData;
+                        try
+                        {
+                            decryptedReceiveData = RijndaelEncryption.Decrypt(rcvBuf, password);
+                        }
+                        catch (Exception)
+                        {
+                            throw new ArgumentException("Decryption Error");
+                        }
                         switch (request.Url.LocalPath)
                         {
                             case "/request":
                                 {
-                                    var len = request.ContentLength64;
-                                    byte[] rcvBuf = new byte[len];
-                                    request.InputStream.Read(rcvBuf, 0, (int)len);
-
-                                    byte[] decryptedReceiveData = RijndaelEncryption.Decrypt(rcvBuf, password);
-
                                     if (utf8.GetString(decryptedReceiveData) == "request")
                                     {
                                         response.StatusCode = 200;
+                                        byte[] data = OnDownloadRequest?.Invoke(id);
                                         res = RijndaelEncryption.Encrypt(data, password);
                                     }
                                 }
                                 break;
                             case "/upload":
                                 {
-                                    var len = request.ContentLength64;
-                                    byte[] rcvBuf = new byte[len];
-                                    request.InputStream.Read(rcvBuf, 0, (int)len);
-
-                                    byte[] decryptedReceiveData = RijndaelEncryption.Decrypt(rcvBuf, password);
-
-                                    OnReceived?.Invoke(decryptedReceiveData);
+                                    MainThreadContext.Post((state) => {
+                                        OnDataUploaded?.Invoke(decryptedReceiveData, id);
+                                    }, null);
 
                                     response.StatusCode = 200;
                                     string responseString = ("Upload OK");
@@ -153,6 +174,10 @@ public class SEDSS_Server : MonoBehaviour
 
                 Thread.Sleep(30);
             }
+        }
+        catch (HttpListenerException)
+        {
+            //Do noting
         }
         catch (Exception e)
         {

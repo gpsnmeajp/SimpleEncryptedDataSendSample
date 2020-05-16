@@ -22,20 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 using System;
+using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(SEDSS_Server))]
-public class SEDSS_Server_Test : MonoBehaviour
+public class SEDSS_Server_File : MonoBehaviour
 {
     SEDSS_Server server;
 
     public string password = "1234";
-    public string SendData = "Hello World";
+    public string SendFilePath = "";
     public string SendDataID = "";
-    public string ReceiveData = "";
+    public string ReceiveFilePath = "";
     public string ReceiveDataID = "";
     void Start()
     {
@@ -43,14 +44,14 @@ public class SEDSS_Server_Test : MonoBehaviour
         server.SetPassword(password);
 
         server.OnDataUploaded = (data, id) => {
-            ReceiveData = new UTF8Encoding(false).GetString(data);
+            File.WriteAllBytes(ReceiveFilePath, data);
             ReceiveDataID = id;
             Debug.Log("Server data received ID:" + id);
         };
         server.OnDownloadRequest = (id) => {
             Debug.Log("Server data send ID:" + id);
             SendDataID = id;
-            return new UTF8Encoding(false).GetBytes(SendData);
+            return File.ReadAllBytes(SendFilePath);
         };
     }
 }

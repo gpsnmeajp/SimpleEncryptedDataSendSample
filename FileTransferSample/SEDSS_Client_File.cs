@@ -22,35 +22,51 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 using System;
+using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(SEDSS_Server))]
-public class SEDSS_Server_Test : MonoBehaviour
+[RequireComponent(typeof(SEDSS_Client))]
+public class SEDSS_Client_File : MonoBehaviour
 {
-    SEDSS_Server server;
+    SEDSS_Client client;
 
+    public bool upload = false;
+
+    public string Address = "127.0.0.1";
     public string password = "1234";
-    public string SendData = "Hello World";
-    public string SendDataID = "";
-    public string ReceiveData = "";
-    public string ReceiveDataID = "";
+
+    public string id = "";
+    public string UploadFilePath = "";
+    public string DownloadFilePath = "";
+    public string Error = "";
     void Start()
     {
-        server = GetComponent<SEDSS_Server>();
-        server.SetPassword(password);
+        client = GetComponent<SEDSS_Client>();
+        client.SetAddress(Address);
+        client.SetPassword(password);
 
-        server.OnDataUploaded = (data, id) => {
-            ReceiveData = new UTF8Encoding(false).GetString(data);
-            ReceiveDataID = id;
-            Debug.Log("Server data received ID:" + id);
-        };
-        server.OnDownloadRequest = (id) => {
-            Debug.Log("Server data send ID:" + id);
-            SendDataID = id;
-            return new UTF8Encoding(false).GetBytes(SendData);
-        };
+        if (upload)
+        {
+            byte[] data = File.ReadAllBytes(UploadFilePath);
+            client.Upload(data,id,(id) =>
+            {
+                Debug.Log("Upload OK ID:"+id);
+            }, (e, id) =>
+            {
+                Error = e;
+            });
+        }
+        else {
+            client.Download(id,(data, id) => 
+            {
+                File.WriteAllBytes(DownloadFilePath, data);
+                Debug.Log("Download OK ID:"+id);
+            }, (e, id) => {
+                Error = e;
+            });
+        }
     }
 }

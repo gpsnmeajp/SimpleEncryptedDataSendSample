@@ -31,16 +31,25 @@ using UnityEngine;
 [RequireComponent(typeof(SEDSS_Server))]
 public class SEDSS_Server_EVMC4U : MonoBehaviour
 {
+    EVMC4U.ExternalReceiver externalReceiver;
     SEDSS_Server server;
 
     public string password = "1234";
     public string SendFilePath = "";
     void Start()
     {
+        externalReceiver = GetComponent<EVMC4U.ExternalReceiver>();
+
         server = GetComponent<SEDSS_Server>();
         server.SetPassword(password);
-        server.SetData(File.ReadAllBytes(SendFilePath));
+        server.OnDownloadRequest = (id) => {
+            Debug.Log("Server responced");
+            return File.ReadAllBytes(SendFilePath);
+        };
 
-        server.OnReceived = (data) => {};
+        server.OnDataUploaded = (data,id) => {
+            Debug.Log("Server received");
+            externalReceiver?.LoadVRMFromData(data);
+        };
     }
 }

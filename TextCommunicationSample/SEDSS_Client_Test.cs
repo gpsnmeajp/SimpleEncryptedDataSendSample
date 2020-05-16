@@ -37,6 +37,7 @@ public class SEDSS_Client_Test : MonoBehaviour
     public string Address = "127.0.0.1";
     public string password = "1234";
 
+    public string id = "";
     public string UploadData = "";
     public string DownloadData = "";
     public string Error = "";
@@ -49,20 +50,20 @@ public class SEDSS_Client_Test : MonoBehaviour
         if (upload)
         {
             byte[] data = new UTF8Encoding(false).GetBytes(UploadData);
-            client.Upload(data,() =>
+            client.Upload(data,id,(id) =>
             {
-                Debug.Log("Upload OK");
-            }, (e) =>
+                Debug.Log("Upload OK ID:"+id);
+            }, (e, id) =>
             {
                 Error = e;
             });
         }
         else {
-            client.Download((data) => 
+            client.Download(id,(data, id) => 
             {
                 DownloadData = new UTF8Encoding(false).GetString(data);
-                Debug.Log("Download OK");
-            }, (e) => {
+                Debug.Log("Download OK ID:"+id);
+            }, (e, id) => {
                 Error = e;
             });
         }

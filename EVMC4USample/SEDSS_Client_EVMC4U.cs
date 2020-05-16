@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 using System;
+using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,6 +36,8 @@ public class SEDSS_Client_EVMC4U : MonoBehaviour
 
     public string Address = "127.0.0.1";
     public string password = "1234";
+    public string id = "";
+    public string UploadFilePath = "";
 
     public string Error = "";
     void Start()
@@ -45,12 +48,29 @@ public class SEDSS_Client_EVMC4U : MonoBehaviour
         client.SetAddress(Address);
         client.SetPassword(password);
 
-        client.Download((data) =>
+        if (externalReceiver != null) {
+            client.Download(id, (data, id) =>
+            {
+                externalReceiver?.LoadVRMFromData(data);
+                Debug.Log("Download OK id:" + id);
+            }, (e, id) => {
+                Error = e;
+                Debug.Log("Download Error id:" + id);
+            });
+        }
+
+        if (File.Exists(UploadFilePath))
         {
-            externalReceiver.LoadVRMFromData(data);
-            Debug.Log("Download OK");
-        }, (e) => {
-            Error = e;
-        });
+            byte[] data = File.ReadAllBytes(UploadFilePath);
+            Debug.Log(data.Length);
+            client.Upload(data, id, (id) =>
+            {
+                Debug.Log("Upload OK id:" + id);
+            }, (e, id) =>
+            {
+                Error = e;
+                Debug.Log("Upload Error id:"+id);
+            });
+        }
     }
 }
