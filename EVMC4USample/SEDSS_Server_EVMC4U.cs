@@ -42,6 +42,8 @@ public class SEDSS_Server_EVMC4U : MonoBehaviour
 
         server = GetComponent<SEDSS_Server>();
         server.SetPassword(password);
+        server.ServerStart();
+
         server.OnDownloadRequest = (id) => {
             Debug.Log("Server responced");
             return File.ReadAllBytes(SendFilePath);

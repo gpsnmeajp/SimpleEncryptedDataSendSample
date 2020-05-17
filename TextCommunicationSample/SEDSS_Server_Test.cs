@@ -41,6 +41,7 @@ public class SEDSS_Server_Test : MonoBehaviour
     {
         server = GetComponent<SEDSS_Server>();
         server.SetPassword(password);
+        server.ServerStart();
 
         server.OnDataUploaded = (data, id) => {
             ReceiveData = new UTF8Encoding(false).GetString(data);

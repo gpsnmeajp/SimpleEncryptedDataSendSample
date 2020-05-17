@@ -50,6 +50,7 @@ public class SEDSS_Client_Test : MonoBehaviour
         if (upload)
         {
             byte[] data = new UTF8Encoding(false).GetBytes(UploadData);
+            Debug.Log(data.Length);
             client.Upload(data,id,(id) =>
             {
                 Debug.Log("Upload OK ID:"+id);
@@ -59,6 +60,7 @@ public class SEDSS_Client_Test : MonoBehaviour
             });
         }
         else {
+            Debug.Log("client.Download");
             client.Download(id,(data, id) => 
             {
                 DownloadData = new UTF8Encoding(false).GetString(data);
