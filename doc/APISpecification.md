@@ -41,7 +41,6 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
             Debug.Log("Message:" + e);
         });
     }
-}
 ```
 ```cs
     void download()
@@ -61,7 +60,6 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
             Debug.Log("Message:" + e);
         });
     }
-}
 ```
 
 ## httpTimeout
