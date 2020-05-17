@@ -12,7 +12,12 @@ LAN内やVPN上で使用する前提です。
 
 詳細な仕様は、**[APIドキュメント](https://github.com/gpsnmeajp/SimpleEncryptedDataSendSample/blob/master/doc/APISpecification.md)** を確認してください。
 
-UnityCipher (暗号化ライブラリ)に依存しています。  
+動作にはUnityCipher (暗号化ライブラリ)が必要です  
 https://github.com/TakuKobayashi/UnityCipher
 
 <img src="https://github.com/gpsnmeajp/SimpleEncryptedDataSendSample/blob/master/doc/SEDSS.png?raw=true"></img>
+
+# ライセンス
+MIT Licence
+
+# [お問合せ先(Discordサーバー)](https://discord.gg/nGapSR7)
