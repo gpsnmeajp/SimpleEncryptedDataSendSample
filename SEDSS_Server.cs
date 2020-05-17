@@ -251,7 +251,8 @@ public class SEDSS_Server : MonoBehaviour
                             case "/upload":
                                 {
                                     //復号されたデータをアップロード時コールバックに渡す
-                                    MainThreadContext.Post((state) => {
+                                    MainThreadContext.Post((state) =>
+                                    {
                                         OnDataUploaded?.Invoke(decryptedReceiveData, id);
                                     }, null);
 
@@ -269,6 +270,11 @@ public class SEDSS_Server : MonoBehaviour
                         }
                     }
                 }
+                catch (ObjectDisposedException) {
+                    //強制終了された
+                    return;
+                }
+
                 catch (Exception e)
                 {
                     //異常は記録する
