@@ -29,7 +29,7 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
         client.SetAddress("127.0.0.1");
         client.SetPassword("1234");
 
-        string request_id = "test message"
+        string request_id = "test message";
         byte[] data = new UTF8Encoding(false).GetBytes("Hello World");
 
         Debug.Log("Upload Start ID:" + request_id);
@@ -49,7 +49,7 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
         client.SetAddress("127.0.0.1");
         client.SetPassword("1234");
 
-        string request_id = "test message"
+        string request_id = "test message";
         Debug.Log("Download Start ID:" + request_id);
         client.Download(request_id,(data, id) => 
         {
