@@ -25,15 +25,15 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
 ```cs
     void upload()
     {
-        client = GetComponent<SEDSS_Client>();
+        var client = GetComponent<SEDSS_Client>();
         client.SetAddress("127.0.0.1");
         client.SetPassword("1234");
 
         string request_id = "test message";
-        byte[] data = new UTF8Encoding(false).GetBytes("Hello World");
+        byte[] data = new System.Text.UTF8Encoding(false).GetBytes("Hello World");
 
         Debug.Log("Upload Start ID:" + request_id);
-        client.Upload(data,request_id,(id) =>
+        client.Upload(data, request_id, (id) =>
         {
             Debug.Log("Upload OK ID:" + id);
         }, (e, id) => {
@@ -45,16 +45,16 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
 ```cs
     void download()
     {
-        client = GetComponent<SEDSS_Client>();
+        var client = GetComponent<SEDSS_Client>();
         client.SetAddress("127.0.0.1");
         client.SetPassword("1234");
 
         string request_id = "test message";
         Debug.Log("Download Start ID:" + request_id);
-        client.Download(request_id,(data, id) => 
+        client.Download(request_id, (data, id) =>
         {
             Debug.Log("Download OK ID:" + id);
-            Debug.Log("Message:"+ new UTF8Encoding(false).GetString(data));
+            Debug.Log("Message:" + new System.Text.UTF8Encoding(false).GetString(data));
         }, (e, id) => {
             Debug.Log("Download Error ID:" + id);
             Debug.Log("Message:" + e);
@@ -96,17 +96,17 @@ MonoBehaviourのため、適当なGameObjectにアタッチして使用します
 ```cs
     void Start()
     {
-        server = GetComponent<SEDSS_Server>();
+        var server = GetComponent<SEDSS_Server>();
         server.SetPassword("1234");
         server.StartServer();
 
         server.OnDataUploaded = (data, id) => {
             Debug.Log("Server Received ID:" + id);
-            Debug.Log("Message:" + new UTF8Encoding(false).GetString(data));
+            Debug.Log("Message:" + new System.Text.UTF8Encoding(false).GetString(data));
         };
         server.OnDownloadRequest = (id) => {
             Debug.Log("Server Send ID:" + id);
-            return new UTF8Encoding(false).GetBytes("You're welcome");
+            return new System.Text.UTF8Encoding(false).GetBytes("You're welcome");
         };
     }
 ```
