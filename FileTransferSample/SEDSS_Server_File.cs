@@ -42,7 +42,7 @@ public class SEDSS_Server_File : MonoBehaviour
     {
         server = GetComponent<SEDSS_Server>();
         server.SetPassword(password);
-        server.ServerStart();
+        server.StartServer();
 
         server.OnDataUploaded = (data, id) => {
             File.WriteAllBytes(ReceiveFilePath, data);

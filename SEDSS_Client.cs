@@ -43,7 +43,7 @@ public class SEDSS_Client : MonoBehaviour
     /// <summary>
     /// 通信先ポート
     /// </summary>
-    public int Port = 8000;
+    public int port = 8000;
 
     /// <summary>
     /// 通信先アドレス
@@ -122,7 +122,7 @@ public class SEDSS_Client : MonoBehaviour
         try
         {
             //URL組み立て
-            string URL = "http://" + Address + ":" + Port + "";
+            string URL = "http://" + Address + ":" + port + "";
 
             //データを暗号化
             byte[] encryptedData = RijndaelEncryption.Encrypt(data, password);
@@ -199,7 +199,7 @@ public class SEDSS_Client : MonoBehaviour
         try
         {
             //URL組み立て
-            string URL = "http://" + Address + ":" + Port + "";
+            string URL = "http://" + Address + ":" + port + "";
 
             //リクエスト(固定文字列)を暗号化
             string requestData = "request";

@@ -107,7 +107,7 @@ public class SEDSS_Server : MonoBehaviour
     /// <summary>
     /// サーバー起動
     /// </summary>
-    public void ServerStart()
+    public void StartServer()
     {
         //サーバー起動
         listener = new HttpListener();
