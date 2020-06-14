@@ -88,6 +88,11 @@ public class SEDSS_Server : MonoBehaviour
     SynchronizationContext MainThreadContext;
 
     /// <summary>
+    /// サーバー状態
+    /// </summary>
+    bool serverStarted = false;
+
+    /// <summary>
     /// 暗号化共通鍵を設定する
     /// </summary>
     /// <param name="password">共通鍵パスワード</param>
@@ -110,6 +115,20 @@ public class SEDSS_Server : MonoBehaviour
     public void StartServer()
     {
         //サーバー起動
+        Debug.Log("[SEDSS Server] Start.");
+        StartServerInternal();
+        serverStarted = true;
+    }
+    /// <summary>
+    /// サーバー起動(内部)
+    /// </summary>
+    private void StartServerInternal()
+    {
+        //一旦停止する
+        Debug.Log("[SEDSS Server] Starting Internal");
+        StopServerInternal();
+
+        //サーバー起動
         listener = new HttpListener();
         listener.Prefixes.Add("http://" + domain + ":" + port + "/");
         listener.Start();
@@ -117,6 +136,7 @@ public class SEDSS_Server : MonoBehaviour
         //受信処理スレッド起動
         thread = new Thread(new ThreadStart(ReceiveThread));
         thread.Start();
+        Debug.Log("[SEDSS Server] Start Internal OK.");
     }
 
     /// <summary>
@@ -124,6 +144,17 @@ public class SEDSS_Server : MonoBehaviour
     /// </summary>
     public void StopServer()
     {
+        // サーバー停止
+        Debug.Log("[SEDSS Server] Stop.");
+        serverStarted = false;
+        StopServerInternal();
+    }
+    /// <summary>
+    /// サーバー停止
+    /// </summary>
+    private void StopServerInternal()
+    {
+        Debug.Log("[SEDSS Server] Stop Internal.");
         try
         {
             listener?.Close();
@@ -144,6 +175,57 @@ public class SEDSS_Server : MonoBehaviour
     private void OnDestroy()
     {
         StopServer();
+    }
+
+    /// <summary>
+    /// MonoBehaviour OnEnable
+    /// </summary>
+    private void OnEnable()
+    {
+        if (serverStarted) {
+            //再開
+            StartServerInternal();
+        }
+    }
+
+    /// <summary>
+    /// MonoBehaviour OnDisable
+    /// </summary>
+    private void OnDisable()
+    {
+        //一時停止
+        StopServerInternal();
+    }
+
+    /// <summary>
+    /// MonoBehaviour OnApplicationQuit
+    /// </summary>
+    private void OnApplicationQuit()
+    {
+        //停止
+        StopServer();
+    }
+
+    /// <summary>
+    /// MonoBehaviour OnApplicationPause
+    /// アプリケーションが中断・復帰したとき(モバイルでバックグラウンドになった・エディタで別のフォーカスを当てられたとき)
+    /// </summary>
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            //アプリが閉じられたら一時停止
+            StopServerInternal();
+        }
+        else
+        {
+            //アプリが開かれたら再開
+            if (serverStarted && isActiveAndEnabled)
+            {
+                //再開
+                StartServerInternal();
+            }
+        }
     }
 
     /// <summary>
