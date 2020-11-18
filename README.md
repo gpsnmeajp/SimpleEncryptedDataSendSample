@@ -1,4 +1,4 @@
-# SimpleEncryptedDataSendSample
+# SEDSS - SimpleEncryptedDataSendSample
 簡単に暗号化してUnityでデータを送受信するC#スクリプトライブラリ。  
 
 byte[]配列の交換を抽象化して行うための手軽なライブラリです。  
