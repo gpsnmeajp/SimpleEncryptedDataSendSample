@@ -17,6 +17,8 @@ https://github.com/TakuKobayashi/UnityCipher
 
 <img src="https://github.com/gpsnmeajp/SimpleEncryptedDataSendSample/blob/master/doc/SEDSS.png?raw=true"></img>
 
+# [公式クライアント実装](https://github.com/gpsnmeajp/SEDSS_Client)
+
 # ライセンス
 MIT Licence
 
